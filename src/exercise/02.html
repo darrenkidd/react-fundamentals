@@ -4,26 +4,43 @@
 <body>
   <div id="root"></div>
 
-  <!-- 🐨 add React and ReactDOM on the page.
-       💰 Here are script tags that'll do the job:
+  <!-- Emmet script:src*2 -->
   <script src="https://unpkg.com/react@17.0.0/umd/react.development.js"></script>
   <script src="https://unpkg.com/react-dom@17.0.0/umd/react-dom.development.js"></script>
-  -->
+
+  <!-- UMD ==> universal module definition, sticks React/ReactDOM into our globals -->
 
   <script type="module">
     const rootElement = document.getElementById('root')
 
-    // You're going to re-implement this code using React!
-    // 💣 So go ahead and delete this implementation (or comment it out for now)
-    // These three lines are similar to React.createElement
-    const element = document.createElement('div')
-    element.textContent = 'Hello World' // 💰 in React, you set this with the "children" prop
-    element.className = 'container' // 💰 in React, this is also called the "className" prop
-    // This is similar to ReactDOM.render
-    rootElement.append(element)
+    // these are fairly ordinary objects you can check in debug console...
+    const hello = React.createElement("span", {children: "Hello"});
+    const world = React.createElement("span", {children: "World"});
 
-    // 🐨 Please re-implement the regular document.createElement code above
-    // with these React API calls
-    // 💰 The example in the markdown file should be a good hint for you.
+    // he uses this overload: createElement(type, props, children*)
+    // const hello = React.createElement("span", null, "Hello"); <-- use null or {}
+    // const world = React.createElement("span", null, "World");
+
+    const div = React.createElement("div", {
+      children: [hello, " ", world],
+      className: "container"
+    });
+    ReactDOM.render(div, document.getElementById("root"));
+
   </script>
 </body>
+
+<!--
+
+  Good knowledge!
+    React: responsible for creating React *elements*
+    ReactDOM: responsible for rendering React elements to the DOM
+  React and ReactDOM are separate because React supports other platforms i.e. Native and VR, so it separates out the building of components from where those things go.
+  These are just slightly easier-to-use APIs than the DOM ones.
+  And wow - even doing the simple list of child items here is enough to get the unique key warning from React!
+    - - > so createElement("div", {children: ['foo', 'bar']}) causes warning
+        - - > but he does point out that this goes away if you use createElement("div", {}, 'foo', 'bar')
+
+  AND OF COURSE - `props` and `children` are passed directly from JSX into these createElement() calls, duh.
+
+-->

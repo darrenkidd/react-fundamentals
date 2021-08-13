@@ -5,20 +5,154 @@
   <div id="root"></div>
   <script src="https://unpkg.com/react@17.0.0/umd/react.development.js"></script>
   <script src="https://unpkg.com/react-dom@17.0.0/umd/react-dom.development.js"></script>
+  <!-- <script src="https://unpkg.com/prop-types@15.7.2/prop-types.js" type="module"></script> *** he doesn't do type module -->
+  <script src="https://unpkg.com/prop-types@15.7.2/prop-types.js"></script>
   <script src="https://unpkg.com/@babel/standalone@7.12.4/babel.js"></script>
   <script type="text/babel">
-    // 🐨 Make a function called `message` which returns the JSX we want to share
 
-    // 🐨 use that function in place of the divs below with:
-    // 💰 {message({children: 'Hello World'})} {message({children: 'Goodbye World'})}
+    function kcdMessage(props) {
+      return <div className="message">{props.children}</div>;
+    }
+
+    // 🐨 Make a function called `message` which returns the JSX we want to share
+    const message = ({children}) => <div className="message">{children}</div>;
+
+    const goodbyeElement = kcdMessage({children: 'Goodbye World'});
+
     const element = (
       <div className="container">
-        <div className="message">Hello World</div>
-        <div className="message">Goodbye World</div>
+        {message({children: 'Hello World'})}
+        {goodbyeElement}
       </div>
-    )
+    ); // interpolation of element directly and calling function work EXACTLY the same here
 
-    // 💯 This is only the first step to making actual React components. The rest is in the extra credit!
-    ReactDOM.render(element, document.getElementById('root'))
+    const elementEc1 = (
+      <div className="container">
+        {React.createElement(message, {children: 'Hello World EC1'})}
+        {React.createElement(kcdMessage, {children: 'Goodbye World EC1'})}
+      </div>
+    ); // Here 'message' and 'kcdMessage' are the "types" of these components.
+       // These functions are only called when React renders to page.
+       // OOOOH, check the React Dev Tools: shows 'message' vs 'div', so when function is called directly it just renders the <div> in.
+
+    const FullySickMessage = ({children}) => <div className="message">{children}</div>;
+
+    const elementEc2 = (
+      <div className="container">
+        <FullySickMessage>Hello World EC2</FullySickMessage>
+        <FullySickMessage>Goodbye World EC2</FullySickMessage> {/* could totally nest these too! */}
+      </div>
+    );
+
+    const PrettySickMessage = ({subject, greeting}) => (
+      <div className="message">
+        {greeting}, {subject}
+      </div>
+    );
+
+    // Refactored out to demonstrate what PropTypes actually does.
+    const CustomPropTypes = {
+      string: (props, propName, componentName) => {
+        console.log('PROP TYPE CHECK string:', props, propName, componentName);
+        const type = typeof props[propName];
+        if (type !== 'string') {
+          return new Error(
+            `The component ${componentName} needs prop ${propName} to be a string, but it was a ${type}`
+          )
+        }
+      }
+    }
+
+    PrettySickMessage.propTypes = {
+      fake: CustomPropTypes.string,
+      shouldBeString: CustomPropTypes.string,
+      greeting: PropTypes.string.isRequired,
+      subject: PropTypes.string.isRequired,
+    };
+
+    const elementEc3 = (
+      <div className="container">
+        <PrettySickMessage greeting={4} subject="World" fake={5} />
+        <PrettySickMessage greeting="Goodbye" subject="World" fake="bar" shouldBeString="wut" />
+      </div>
+    );
+
+    // SWEET:
+    // index.js:1 Warning: Failed prop type: Invalid prop `greeting` of type `number` supplied to `PrettySickMessage`, expected `string`.
+    //                at PrettySickMessage (<anonymous>:48:23)
+    // index.js:1 Warning: Failed prop type: The component PrettySickMessage needs prop shouldBeString to be a string, but it was a undefined
+    //                at PrettySickMessage (<anonymous>:50:23)
+    //
+    // If I changed it to use react.production.js and react-dom.production.js all this validation would just disappear.
+    // If using TypeScript, you probably don't need to use prop-types at all.
+
+    const elementEc4 = (
+      <>
+        <PrettySickMessage greeting={4} subject="World" fake={5} />
+        <PrettySickMessage greeting="Goodbye" subject="World" fake="bar" shouldBeString="wut" />
+      </>
+    ); // Now rendered directly under root, not in container
+       // ERROR: ==> "JSX expressions must have one parent element" without it
+       // coz how would you do React.createElement(PrettySickMessage PrettySickMessage, props, children)???
+
+    /* Avoids fragments but is pretty gross:
+    const cheating = [
+      <PrettySickMessage greeting={4} subject="World" fake={5} />,
+      <PrettySickMessage greeting="Goodbye" subject="World" fake="bar" shouldBeString="wut" />
+    ]
+    ReactDOM.render(cheating, document.getElementById('root')) */
+
+    ReactDOM.render(elementEc4, document.getElementById('root'));
   </script>
 </body>
+
+<!--
+
+  from React Dev Tools:
+  (1)
+    <div>
+    <div>
+  (2)
+    <message>
+      <div>
+    <kcdMessage>
+      <div>
+
+WOW
+  ui = <Capitalized /> // React.createElement(Capitalized)
+  ui = <property.access /> // React.createElement(property.access)
+  ui = <Property.Access /> // React.createElement(Property.Access)
+  ui = <Property['Access'] /> // SyntaxError
+  ui = <lowercase /> // React.createElement('lowercase')
+  ui = <kebab-case /> // React.createElement('kebab-case')
+  ui = <Upper-Kebab-Case /> // React.createElement('Upper-Kebab-Case')
+  ui = <Upper_Snake_Case /> // React.createElement(Upper_Snake_Case)
+  ui = <lower_snake_case /> // React.createElement('lower_snake_case')
+
+jsUI  = React.createElement('div', {x: 'y'}, 'children');
+jsxUI = <div x="y">children</div>
+
+Needs to be capitalised in order for Babel to transpile properly.
+"Some mechanism" to tell it to pass it as a ref not a string.
+Uppercase means "this is a ref to a variable that is in scope"
+
+jsUI  = React.createElement(CustomComponentFn, {x: 'y'}, 'children');
+jsxUI = <CustomComponentFn x="y">children</CustomComponentFn>
+
+-----
+
+var elementEc4 = React.createElement(React.Fragment, null,
+    React.createElement(PrettySickMessage, {
+        greeting: 4,
+        subject: "World",
+        fake: 5
+    }),
+    React.createElement(PrettySickMessage, {
+        greeting: "Goodbye",
+        subject: "World",
+        fake: "bar",
+        shouldBeString: "wut"
+    }),
+  );
+
+-->
