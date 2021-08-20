@@ -5,15 +5,26 @@
   justify-content: center;
   text-align: center;
 }
+
 .box--large {
   width: 270px;
   height: 270px;
 }
+
 .box--medium {
   width: 180px;
   height: 180px;
 }
+
 .box--small {
   width: 90px;
   height: 90px;
+}
+
+.polka-dot {
+  background-image:
+    radial-gradient(#ebbf60 30%, transparent 20%),
+    radial-gradient(#ec8888 30%, transparent 20%);
+  background-position: 0 0, 45px 45px;
+  background-size: 90px 90px;
 }
