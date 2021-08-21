@@ -34,6 +34,7 @@ const largeBox = (
   </div>
 );
 
+// eslint-disable-next-line no-unused-vars
 function App() {
   return (
     <div>
@@ -57,6 +58,7 @@ const BoxEc1 = ({className = "", style, ...otherProps}) => (
   />
 );
 
+// eslint-disable-next-line no-unused-vars
 const AppEc1 = () => (
   <>
     <BoxEc1 className="box--small" style={{backgroundColor: 'lightblue'}}>

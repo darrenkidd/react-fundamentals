@@ -22,15 +22,19 @@ function App() {
     setItems(items.filter(i => i.id !== item.id))
   }
 
+  // the map() just produces a regular array, so React knows it's changed, but doesn't know how it changed
+  // "will feel this problem with anything that maintains state over time"
+  // BUT key needs to be unique but long-lived
+  // using 'index' is the default behaviour 
+
   return (
     <div className="keys">
       <button disabled={items.length >= allItems.length} onClick={addItem}>
         add item
       </button>
       <ul style={{listStyle: 'none', paddingLeft: 0}}>
-        {items.map(item => (
-          // 🐨 add a key prop to the <li> below. Set it to item.id
-          <li>
+        {items.map((item, index) => (
+          <li key={item.id} id={`item-${index}`}>
             <button onClick={() => removeItem(item)}>remove</button>{' '}
             <label htmlFor={`${item.id}-input`}>{item.value}</label>{' '}
             <input id={`${item.id}-input`} defaultValue={item.value} />
